@@ -18,9 +18,9 @@ public class client{
         try {
             //open connection
             s = new Socket(a, p);
-            System.out.println("socket opened!");
-            System.out.println("Local IP: " + s.getLocalAddress() + " Local port:" + s.getLocalPort());
-            System.out.println("Remote IP: " + s.getInetAddress() + " Remote port:" + s.getPort());
+            //System.out.println("socket opened!");
+            //System.out.println("Local IP: " + s.getLocalAddress() + " Local port:" + s.getLocalPort());
+            //System.out.println("Remote IP: " + s.getInetAddress() + " Remote port:" + s.getPort());
 
             din = new BufferedReader(new InputStreamReader(s.getInputStream()));
             dout = new DataOutputStream(s.getOutputStream());
