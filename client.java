@@ -34,7 +34,7 @@ public class client{
     }
     public void run() throws IOException{
     String str;             //String to hold job requests when buffer is overwritten (such as when executing GETS)
-    System.out.println("Handshake success?: " + handshake());
+    //System.out.println("Handshake success?: " + handshake());
 
     dataSend("REDY");
 
@@ -83,7 +83,7 @@ public class client{
         int x = 0;
         while(x < noOfServers) {        //collect all data in anticipation that its required for stage 2
             s = din.readLine();
-            System.out.println("Setting server " + x + " to " + s);
+            //System.out.println("Setting server " + x + " to " + s);
             String[] temp = s.split(" ");
             Servers[x].serverType = temp[0];
             Servers[x].serverID = Integer.parseInt(temp[1]);
