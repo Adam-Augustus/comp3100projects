@@ -78,11 +78,11 @@ for conf in $configDir/*.xml; do
 	if [[ $newline == "n" ]]; then
 		./ds-server -c $conf -v brief -n > $conf-ref-log.txt&
 		sleep 4
-		./ds-client -a lrr -n
+		./ds-client -a fc -n
 	else
 		./ds-server -c $conf -v brief > $conf-ref-log.txt&
 		sleep 4
-		./ds-client -a lrr
+		./ds-client -a fc
 	fi
 	
 	echo "running your implementation ($yourClient)..."
