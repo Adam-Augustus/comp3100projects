@@ -1,11 +1,11 @@
 public class server {
-    String serverType;
-    int serverID;
-    String state;
-    int currStartTime;
-    int cores;
+    String serverType; //Name of server type
+    int serverID; //ID of server
+    String state; //Current server state
+    int currStartTime; //current start time
+    int cores; 
     int memory;
     int disk;
-    int wJobs;
-    int rJobs;
+    int wJobs; //waiting jobs
+    int rJobs; //running jobs
 }
