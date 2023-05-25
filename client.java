@@ -161,6 +161,7 @@ public class client{
     }
 
     String findBestServerForJob() {
+        //compare cores mem and disk
         return null;
     }
 
