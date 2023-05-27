@@ -3,9 +3,9 @@ public class server {
     int serverID; //ID of server
     String state; //Current server state
     int currStartTime; //current start time
-    int cores; 
-    int memory;
-    int disk;
+    int cores; //noOfCores
+    int memory; //noOfMem
+    int disk; //noOfDisk
     int wJobs; //waiting jobs
     int rJobs; //running jobs
 }

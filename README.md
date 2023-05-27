@@ -24,3 +24,6 @@ Cons: Slower, has to calculate fitness for eash server for each task
 Worst-Fit
 Pros: Schedules fast, Lrr but uses all servers
 Cons: Can schedule a large job to a small server, 
+
+command to test effectiveness
+./s2 test.py "java MyClient" -n -r results/ref results.json
