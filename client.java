@@ -9,26 +9,15 @@ public class client{
     DataOutputStream dout;
 
     //Elements for super cool super awesome implementation
-    server[] Servers;
-    int noOfServers;
-    server[] currServers;
-    int noOfCurrServers;
-
-    boolean readQueue = false; //false = send to queue. true = send from queue to servers
-    boolean noMoreJobs = false;
-    int sizeOfQueue = 0;
-    int sizeOfJobToEnqueue = 16;
-    int maxQueueSize = 5;
-
+    server[] Servers; //full list of servers
+    int noOfServers; //how many of those there are
+    server[] currServers; //list of servers that can do job
+    int noOfCurrServers; //how many there
 
     public client(String a, int p) {
         try {
             //open connection
             s = new Socket(a, p);
-            //System.out.println("socket opened!");
-            //System.out.println("Local IP: " + s.getLocalAddress() + " Local port:" + s.getLocalPort());
-            //System.out.println("Remote IP: " + s.getInetAddress() + " Remote port:" + s.getPort());
-
             din = new BufferedReader(new InputStreamReader(s.getInputStream()));
             dout = new DataOutputStream(s.getOutputStream());
         }
@@ -42,16 +31,11 @@ public class client{
 
     public void run() throws IOException{
     String str;             //String to hold job requests when buffer is overwritten (such as when executing GETS)
-    //System.out.println("Handshake success?:)) " + handshake());
     handshake();
-
     dataSend("REDY");
-
     str = dataRec();
-
     getServers();
     dataSend("ENQJ GQ");
-    sizeOfQueue++;
     str = dataRec();
 
     //MAIN DECISION LOOP
@@ -65,7 +49,6 @@ public class client{
 
         //if rec JOBN or JOBP, get job data, fill currServers with capable servers for that job, run findBestServerForJob, assign job
         else if (split[0].equals("JOBN") || split[0].equals("JOBP")) {
-            System.out.println("Running job allocator MAIN");
             int subTime = Integer.parseInt(split[1]);
             int jobID = Integer.parseInt(split[2]);
             int estRuntime = Integer.parseInt(split[3]);
@@ -81,10 +64,6 @@ public class client{
                 int serverNoToUse = currServers[thisServer].serverID;
                 dataSend("SCHD " + split[2] + " " + serverToUse + " " + serverNoToUse);
             }
-            if (thisServer == -1) { //assign job to GQ
-                sizeOfQueue++;
-                dataSend("ENQJ GQ");
-            }
         }
 
         //if job complete, send REDY
@@ -94,26 +73,11 @@ public class client{
 
         //if no jobs and queue has jobs, turn on noMoreJobs, turn on useQueue, send OK
         else if (split[0].equals("CHKQ")) {
-            readQueue = true;
-            noMoreJobs = true;
             dataSend("DEQJ GQ 0");
-            sizeOfQueue--;
-        }
-        else if (readQueue) {
-            dataSend("DEQJ GQ 0");
-            dataSend("REDY");
         }
 
         else if (str.equals("")) System.out.println("im broken");;
-
-        //System.out.println("READING NEXT");
         str = dataRec();
-
-        if (sizeOfQueue >= maxQueueSize) {
-            readQueue = true;
-            System.out.println("readQueue is "+readQueue);
-        }
-        if (sizeOfQueue <= 0 && !noMoreJobs) readQueue = false;
     }
 
     dataSend("QUIT");
@@ -127,7 +91,6 @@ public class client{
 
     //get servers and add to array of type server, then fill data as required
     void getServers() throws IOException {
-        //System.out.println("Getting Servers");
         dataSend("GETS All");
         String s = dataRec();
         String[] a = s.split(" ");
@@ -138,9 +101,8 @@ public class client{
         }
         dataSend("OK");
         int x = 0;
-        while(x < noOfServers) {        //collect all data for future complex implementations
+        while(x < noOfServers) {        //collect all data on Servers
             s = din.readLine();
-            //System.out.println("Setting server " + x + " to " + s);
             String[] temp = s.split(" ");
             Servers[x].serverType = temp[0];
             Servers[x].serverID = Integer.parseInt(temp[1]);
@@ -154,8 +116,6 @@ public class client{
 
             x++;
         }
-        //System.out.println("Server collection complete!");
-        //System.out.println("Largest server called " + largestServerName + " has " + largestServerCores + " cores and there are " + noLargestServers + " of them");
         dataSend("OK");
     }
 
@@ -163,12 +123,6 @@ public class client{
         dataSend("GETS Capable " + core + " " + mem + " " + disk);
         String s = dataRec();
         String[] a = s.split(" ");
-        // while (!a[0].equals("DATA")) {
-        //     s = dataRec();
-        //     a = s.split(" ");
-        //     System.out.println("FAILED "+a[0]);
-        // }
-        
         noOfCurrServers = Integer.parseInt(a[1]);
         currServers = new server[noOfCurrServers];
 
@@ -203,34 +157,21 @@ public class client{
         //needs to return an Int that represents an index to chosen server in currServers.
         //--
         //cores is cores avaliable to use not avaliable overall
-        if (!readQueue){
-            if (reqCores <= sizeOfJobToEnqueue) return -1;
-        }
         int bestScore = 99999999; //start best score functionally infinite
-        int bestRatio = 99999999;
         int serverToUse = 0;
-        for (int i = 0; i < noOfCurrServers; i++) {
+        for (int i = noOfCurrServers-1; i > 0; i--) {
             int equivalentServerInMainList = findServerData(currServers[i].serverType, currServers[i].serverID);
+
             //create a fitness score for each server based on amount of jobs
+            //running and waiting jobs INCREASE
+            //more cores DECREASE
+            //more available cores DECREASE
             int check = 0; //initialize check as 0
-                check = (check + currServers[i].rJobs + currServers[i].wJobs)*100;
-                check = check/Servers[equivalentServerInMainList].cores;   
+                check = (check + currServers[i].rJobs + currServers[i].wJobs)*100000;
+                //check = check/Servers[equivalentServerInMainList].cores;
+                if (currServers[i].cores != 0) check = check/currServers[i].cores;   
 
-            //get ratio of reqUsage to availUsage (from 0 uses no resources, to 1 uses all available resources)
-            int ratio = 0;
-            int coreRatio = 0;
-            //int memRatio = 0;
-            //int diskRatio = 0;
-            if (currServers[i].cores != 0) coreRatio = (reqCores*100)/Servers[equivalentServerInMainList].cores*100;
-            //if (currServers[i].memory != 0) memRatio = (reqMem*100)/currServers[i].memory*100;
-            //if (currServers[i].disk != 0) diskRatio = (reqDisk*100)/currServers[i].disk*100;
-            //ratio = coreRatio + memRatio + diskRatio / 3;
-            ratio = coreRatio;
-
-            //normalize score based on avaliable cores in server (server with more cores can have more jobs in queue)
-            //search array of all servers for currently pointed at server
-
-            //System.out.println("Checking server " + currServers[i].serverType + " " + currServers[i].serverID + " with score " + Check);
+            //System.out.println("Checking server " + currServers[i].serverType + " " + currServers[i].serverID + " with score " + check);
             if (check < bestScore) {
                 bestScore = check;
                 serverToUse = i;
@@ -246,6 +187,7 @@ public class client{
         return serverToUse;
     }
 
+    //Find in Servers[] index that matches input server from currServers, if fail return -1
     int findServerData(String name, int n) {
         for (int i = 0; i < noOfServers; i++) {
             if (name.equals(Servers[i].serverType)) {
@@ -258,7 +200,7 @@ public class client{
     //write s to given dout, and print to console (removed print for submission)
     void dataSend(String s) throws IOException {
         dout.write((s+"\n").getBytes()); 
-        System.out.println("Sent: " + s);
+        //System.out.println("Sent: " + s);
         dout.flush();
     }
 
@@ -266,7 +208,7 @@ public class client{
     String dataRec() throws IOException {
         String str;
         str = din.readLine();
-        System.out.println("Rec: " + str);
+        //System.out.println("Rec: " + str);
         return str;
     }
 
