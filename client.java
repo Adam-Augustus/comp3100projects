@@ -35,7 +35,7 @@ public class client{
     dataSend("REDY");
     str = dataRec();
     getServers();
-    dataSend("ENQJ GQ");
+    dataSend("REDY");
     str = dataRec();
 
     //MAIN DECISION LOOP
@@ -156,7 +156,7 @@ public class client{
             int check = 99999999;
                 if (currServers[i].cores >= reqCores) check = 100000/(currServers[i].cores*1000/Servers[equivalentServerInMainList].cores);
                 else {
-                    check = ((check + currServers[i].rJobs + currServers[i].wJobs)*100000)/Servers[equivalentServerInMainList].cores; 
+                    check = ((currServers[i].rJobs + currServers[i].wJobs)*100000)/Servers[equivalentServerInMainList].cores; 
                 }
 
             if (check < bestScore) {
