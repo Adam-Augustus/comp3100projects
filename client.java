@@ -49,9 +49,6 @@ public class client{
 
         //if rec JOBN or JOBP, get job data, fill currServers with capable servers for that job, run findBestServerForJob, assign job
         else if (split[0].equals("JOBN") || split[0].equals("JOBP")) {
-            int subTime = Integer.parseInt(split[1]);
-            int jobID = Integer.parseInt(split[2]);
-            int estRuntime = Integer.parseInt(split[3]);
             int reqCores = Integer.parseInt(split[4]);
             int reqMem = Integer.parseInt(split[5]);
             int reqDisk = Integer.parseInt(split[6]);
@@ -64,6 +61,7 @@ public class client{
                 int serverNoToUse = currServers[thisServer].serverID;
                 dataSend("SCHD " + split[2] + " " + serverToUse + " " + serverNoToUse);
             }
+            if (thisServer == -1) dataSend("ENQJ GQ");
         }
 
         //if job complete, send REDY
@@ -71,11 +69,12 @@ public class client{
             dataSend("REDY");
         }
 
-        //if no jobs and queue has jobs, turn on noMoreJobs, turn on useQueue, send OK
+        //if no jobs and queue has jobs, dequeue the first job
         else if (split[0].equals("CHKQ")) {
             dataSend("DEQJ GQ 0");
         }
 
+        //debugging code, in case communication errors
         else if (str.equals("")) System.out.println("im broken");;
         str = dataRec();
     }
@@ -149,40 +148,21 @@ public class client{
     }
 
     int findBestServerForJob(int reqCores, int reqMem, int reqDisk) {
-        //modified (improved) version of a Best Fit algorithm. Not currently using the global Queue.
-        //get cap server with lowest 'working score' ("req / avail") (aka fitness score)
-        //assign job to that server
-        //--
-        //score needs to be averaged, i.e. a large server running at 50% has to have a lower score than a tiny server running 60%
-        //needs to return an Int that represents an index to chosen server in currServers.
-        //--
-        //cores is cores avaliable to use not avaliable overall
         int bestScore = 99999999; //start best score functionally infinite
         int serverToUse = 0;
-        for (int i = noOfCurrServers-1; i > 0; i--) {
+        for (int i = 0; i < noOfCurrServers; i++) {
             int equivalentServerInMainList = findServerData(currServers[i].serverType, currServers[i].serverID);
 
-            //create a fitness score for each server based on amount of jobs
-            //running and waiting jobs INCREASE
-            //more cores DECREASE
-            //more available cores DECREASE
-            int check = 0; //initialize check as 0
-                check = (check + currServers[i].rJobs + currServers[i].wJobs)*100000;
-                //check = check/Servers[equivalentServerInMainList].cores;
-                if (currServers[i].cores != 0) check = check/currServers[i].cores;   
+            int check = 99999999;
+                if (currServers[i].cores >= reqCores) check = 100000/(currServers[i].cores*1000/Servers[equivalentServerInMainList].cores);
+                else {
+                    check = ((check + currServers[i].rJobs + currServers[i].wJobs)*100000)/Servers[equivalentServerInMainList].cores; 
+                }
 
-            //System.out.println("Checking server " + currServers[i].serverType + " " + currServers[i].serverID + " with score " + check);
             if (check < bestScore) {
                 bestScore = check;
                 serverToUse = i;
             }
-            // if (check == bestScore) {
-            //     if (ratio < bestRatio) {
-            //         bestScore = check;
-            //         serverToUse = i;
-            //         bestRatio = ratio;
-            //     }
-            // }
         }
         return serverToUse;
     }

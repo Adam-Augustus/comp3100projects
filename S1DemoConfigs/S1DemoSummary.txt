@@ -1,9 +1,0 @@
-./S1DemoConfigs/ds-S1-config00--demo.xml: NOT PASSED!
-./S1DemoConfigs/ds-S1-config01--demo.xml: NOT PASSED!
-./S1DemoConfigs/ds-S1-config02--demo.xml: NOT PASSED!
-./S1DemoConfigs/ds-S1-config03--demo.xml: NOT PASSED!
-./S1DemoConfigs/ds-S1-config04--demo.xml: NOT PASSED!
-./S1DemoConfigs/ds-S1-config05--demo.xml: NOT PASSED!
-./S1DemoConfigs/ds-S1-config06--demo.xml: NOT PASSED!
-./S1DemoConfigs/ds-S1-config07--demo.xml: NOT PASSED!
-./S1DemoConfigs/ds-S1-config08--demo.xml: NOT PASSED!
