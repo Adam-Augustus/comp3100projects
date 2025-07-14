@@ -1,8 +1,8 @@
-#S1 2023 COMP3100
-##DANIEL JOHNSTON 
-##sid:47095733
+# S1 2023 COMP3100
+## DANIEL JOHNSTON 
+## sid:47095733
 
-###This project is a distributed networking simulation for COMP3100.
+### This project is a distributed networking simulation for COMP3100.
 
 Github repo for Stage 2 of COMP3100 project:
 
